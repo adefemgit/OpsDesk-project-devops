@@ -20,3 +20,6 @@ python -m pytest
 
 Health endpoint: http://127.0.0.1:8000/health/live
 Expected response: `{"status":"ok"}` with HTTP 200.
+
+
+Added docker build and all dependencies neeed, run and health-check commands 
