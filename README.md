@@ -54,3 +54,5 @@ docker compose up -d --build
 - `/health/ready`: returns 200 when the database query succeeds, otherwise 503.
 
 PostgreSQL data is stored in a named Docker volume.
+
+requests follow Mac port 8000 → Nginx port 80 → app port 8000.
