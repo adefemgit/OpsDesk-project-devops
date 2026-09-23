@@ -6,6 +6,9 @@ on:
   push:
     branches: [main]
 
+permissions:
+  contents: read
+
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -24,3 +27,57 @@ jobs:
 
       - name: Run tests
         run: python -m pytest
+
+  container:
+    needs: test
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Set up Python for response validation
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.14"
+
+      - name: Build Docker image
+        run: docker build -t opsdesk:ci .
+
+      - name: Start container
+        run: docker run -d --name opsdesk-ci -p 127.0.0.1:8000:8000 opsdesk:ci
+
+      - name: Check container health
+        shell: bash
+        run: |
+          for attempt in {1..15}; do
+            status=$(curl -sS --max-time 2 \
+              -o response.json -w '%{http_code}' \
+              http://127.0.0.1:8000/health/live) || status=000
+
+            if [ "$status" = "200" ]; then
+              python -c 'import json; assert json.load(open("response.json")) == {"status": "ok"}'
+              echo "Container smoke test passed"
+              exit 0
+            fi
+
+            sleep 2
+          done
+
+          echo "Health endpoint did not return HTTP 200 within the retry limit"
+          exit 1
+
+      - name: Show container logs
+        if: always()
+        run: |
+          if docker container inspect opsdesk-ci >/dev/null 2>&1; then
+            docker logs opsdesk-ci
+          fi
+
+      - name: Remove container
+        if: always()
+        run: |
+          if docker container inspect opsdesk-ci >/dev/null 2>&1; then
+            docker rm -f opsdesk-ci
+          fi
