@@ -23,3 +23,14 @@ Expected response: `{"status":"ok"}` with HTTP 200.
 
 
 Added docker build and all dependencies neeed, run and health-check commands 
+
+BUild:
+-- docker build -t opsdesk:local 
+
+Run:
+docker run --rm --name opsdesk -p 127.0.0.1:8000:8000 opsdesk:local 
+
+check from another terminal:
+curl -i http://127.0.0.1:8000/health/live
+
+Expected: HTTP 200 and {"status":"ok"}
