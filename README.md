@@ -34,3 +34,23 @@ check from another terminal:
 curl -i http://127.0.0.1:8000/health/live
 
 Expected: HTTP 200 and {"status":"ok"}
+
+Starting the stack: docker compose up -d --build
+The difference between /health/live and /health/ready
+Creating .env from .env.example and setting a local password
+
+--Run with PostgreSQL
+
+Copy `.env.example` to `.env` and set a local database password.
+Keep `.env` out of Git.
+
+-- Start the application and database:
+```bash
+docker compose up -d --build
+```
+
+--Health endpoints:
+- `/health/live`: returns 200 when Flask responds.
+- `/health/ready`: returns 200 when the database query succeeds, otherwise 503.
+
+PostgreSQL data is stored in a named Docker volume.
